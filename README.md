@@ -58,15 +58,7 @@ If you want to modify the code or build it yourself:
     -   Click the **History** (clock icon) to view past translations.
     -   Click any item to load it back into the main view.
 
-## 🛠️ Development
 
-To run the project in "Web Mode" for development (hot-reloading):
-
-```bash
-npm run dev
-```
-
-Open `http://localhost:5173` in your browser.
 
 ## 📄 License
 
