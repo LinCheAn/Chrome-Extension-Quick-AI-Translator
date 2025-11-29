@@ -1,6 +1,6 @@
 # Chrome Extension: Quick AI Translator
-
-A powerful, standalone Chrome Extension for quick text translation using **Google Gemini** or **OpenAI**. Designed for reading papers, articles, and quick snippets with a focus on speed and privacy.
+- (Just a test project for gemini 3 agent)
+- A powerful, standalone Chrome Extension for quick text translation using **Google Gemini** or **OpenAI**. Designed for reading papers, articles, and quick snippets with a focus on speed and privacy.
 
 
 ## ✨ Features
