@@ -1,73 +1,73 @@
-# React + TypeScript + Vite
+# Chrome Extension: Quick AI Translator
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A powerful, standalone Chrome Extension for quick text translation using **Google Gemini** or **OpenAI**. Designed for reading papers, articles, and quick snippets with a focus on speed and privacy.
 
-Currently, two official plugins are available:
+![AI Translator Screenshot](https://github.com/LinCheAn/Chrome-Extension-Quick-AI-Translator/assets/placeholder.png)
+*(Note: You can update this image link after uploading a screenshot to your repo)*
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## ✨ Features
 
-## React Compiler
+-   **Multi-Provider Support**: Use **Google Gemini** (Free tier available) or **OpenAI** (GPT-4o, etc.).
+-   **Streaming Translation**: See results instantly word-by-word as they are generated.
+-   **Custom Models**: Select from presets or type **ANY** model name (e.g., `gemini-1.5-pro-002`, `gpt-4o-mini`).
+-   **Smart History**: Automatically saves your last 10 translations. Click any history item to restore it.
+-   **Privacy First**: Your API keys and history are stored **locally** in your browser. No external servers involved.
+-   **Clean UI**: Dark mode support, clear button, and one-click copy.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🚀 Quick Start (Installation)
 
-## Expanding the ESLint configuration
+### Option 1: Install from Zip (Easiest)
+1.  Download the **`ai-translator-extension.zip`** file from this repository.
+2.  Unzip the file. You will see a folder named `dist`.
+3.  Open Google Chrome and navigate to `chrome://extensions`.
+4.  Toggle **Developer mode** in the top right corner.
+5.  Click **Load unpacked**.
+6.  Select the `dist` folder you just unzipped.
+7.  The extension is now installed! Pin it to your toolbar for easy access.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Option 2: Build from Source
+If you want to modify the code or build it yourself:
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+1.  Clone the repository:
+    ```bash
+    git clone https://github.com/LinCheAn/Chrome-Extension-Quick-AI-Translator.git
+    cd Chrome-Extension-Quick-AI-Translator
+    ```
+2.  Install dependencies:
+    ```bash
+    npm install
+    ```
+3.  Build the extension:
+    ```bash
+    npm run build
+    ```
+4.  Load the `dist` folder into Chrome (follow steps 3-6 from Option 1).
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## 📖 Usage
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+1.  **Set API Key**:
+    -   Click the **Settings** (gear icon) in the top right.
+    -   Choose your provider (**Gemini** or **OpenAI**).
+    -   Paste your API Key.
+    -   (Optional) Change the model or customize the system prompt.
+2.  **Translate**:
+    -   Paste text into the source box.
+    -   Click the **Translate** button (arrow icon).
+    -   Watch the translation stream in!
+3.  **History**:
+    -   Click the **History** (clock icon) to view past translations.
+    -   Click any item to load it back into the main view.
+
+## 🛠️ Development
+
+To run the project in "Web Mode" for development (hot-reloading):
+
+```bash
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Open `http://localhost:5173` in your browser.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 📄 License
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+MIT
