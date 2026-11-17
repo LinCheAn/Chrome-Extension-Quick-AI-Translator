@@ -1,11 +1,12 @@
 import OpenAI from 'openai';
+import { buildSystemPrompt, buildUserMessage } from './prompt';
 
 export const translateTextStreamOpenAI = async (
     apiKey: string,
     modelName: string,
     prompt: string,
     text: string,
-    onChunk: (chunk: string) => void
+    onChunk: (rawText: string) => void
 ): Promise<string> => {
     if (!apiKey) {
         throw new Error('API Key is missing');
@@ -16,12 +17,13 @@ export const translateTextStreamOpenAI = async (
         dangerouslyAllowBrowser: true, // Required for client-side usage
     });
 
-    const fullPrompt = `${prompt}\n\n${text}`;
-
     try {
         const stream = await openai.chat.completions.create({
             model: modelName,
-            messages: [{ role: 'user', content: fullPrompt }],
+            messages: [
+                { role: 'system', content: buildSystemPrompt(prompt) },
+                { role: 'user', content: buildUserMessage(text) },
+            ],
             stream: true,
         });
 

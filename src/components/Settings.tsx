@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useStore, THEMES, type Provider } from '../lib/store';
 import { downloadLocalModel, getLocalModelStatus, type LocalModelStatus } from '../lib/chromeAI';
+import { DEFAULT_INSTRUCTION } from '../lib/prompt';
 import { X, Check, Download, Loader2 } from 'lucide-react';
 
 interface SettingsProps {
@@ -198,6 +199,14 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
                             rows={3}
                             className="field resize-none"
                         />
+                        <p className="mt-1 text-xs text-muted flex items-start justify-between gap-2">
+                            <span>Describe the target language and style. Output-format rules are added automatically, so only the translation is shown.</span>
+                            {customPrompt !== DEFAULT_INSTRUCTION && (
+                                <button onClick={() => setCustomPrompt(DEFAULT_INSTRUCTION)} className="flex-shrink-0 text-accent hover:underline">
+                                    Reset
+                                </button>
+                            )}
+                        </p>
                     </div>
                 </div>
 

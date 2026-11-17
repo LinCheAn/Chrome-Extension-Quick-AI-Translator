@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Settings as SettingsIcon, Languages, History as HistoryIcon } from 'lucide-react';
+import { Settings as SettingsIcon, Languages, History as HistoryIcon, Pin, PinOff } from 'lucide-react';
 import { Settings } from './components/Settings';
 import { Translator } from './components/Translator';
 import { History } from './components/History';
 import { useStore } from './lib/store';
+import { canPin, closePinnedWindow, isPinnedWindow, openPinnedWindow } from './lib/pin';
 
 const PROVIDER_LABEL = {
   local: 'Gemini Nano · on-device',
@@ -15,6 +16,7 @@ function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const provider = useStore((s) => s.provider);
+  const isTranslating = useStore((s) => s.isTranslating);
 
   return (
     <div className="h-full flex flex-col p-4 gap-3">
@@ -30,6 +32,21 @@ function App() {
         </div>
 
         <div className="flex items-center gap-1">
+          {canPin() && (
+            <button
+              onClick={() => openPinnedWindow(isTranslating)}
+              className="icon-btn"
+              title="Pin to side panel: stays open while you click on the page"
+            >
+              <Pin className="w-5 h-5" />
+            </button>
+          )}
+          {isPinnedWindow && (
+            <button onClick={closePinnedWindow} className="icon-btn group" title="Unpin (close side panel)">
+              <Pin className="w-5 h-5 text-accent fill-current group-hover:hidden" />
+              <PinOff className="w-5 h-5 hidden group-hover:block" />
+            </button>
+          )}
           <button onClick={() => setIsHistoryOpen(true)} className="icon-btn" title="History">
             <HistoryIcon className="w-5 h-5" />
           </button>

@@ -1,17 +1,18 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useStore } from '../lib/store';
 import { translateTextStream } from '../lib/gemini';
 import { translateTextStreamOpenAI } from '../lib/openai';
 import { translateTextStreamLocal } from '../lib/chromeAI';
+import { parseTranslation } from '../lib/prompt';
+import { clearResumeFlag, shouldResumeTranslation } from '../lib/pin';
 import { ArrowDown, Loader2, Copy, Check, X } from 'lucide-react';
 
 export const Translator: React.FC = () => {
     const {
         provider, apiKey, openaiApiKey, model, customPrompt,
-        sourceText, translatedText,
-        setSourceText, setTranslatedText
+        sourceText, translatedText, isTranslating: isLoading,
+        setSourceText, setTranslatedText, setIsTranslating: setIsLoading
     } = useStore();
-    const [isLoading, setIsLoading] = useState(false);
     const [status, setStatus] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
@@ -32,35 +33,35 @@ export const Translator: React.FC = () => {
         setTranslatedText(''); // Clear previous translation
 
         try {
-            let result: string;
+            // Providers stream the raw response; only the <translation> block is shown.
+            const onChunk = (raw: string) => setTranslatedText(parseTranslation(raw));
+            let raw: string;
 
             if (provider === 'local') {
-                result = await translateTextStreamLocal(
+                raw = await translateTextStreamLocal(
                     customPrompt,
                     sourceText,
-                    (currentText) => {
+                    (currentRaw) => {
                         setStatus(null);
-                        setTranslatedText(currentText);
+                        onChunk(currentRaw);
                     },
                     (fraction) => setStatus(`Downloading on-device model… ${Math.round(fraction * 100)}%`)
                 );
             } else {
                 const streamFunction = provider === 'gemini' ? translateTextStream : translateTextStreamOpenAI;
-                result = await streamFunction(
-                    currentKey,
-                    model,
-                    customPrompt,
-                    sourceText,
-                    (currentText) => setTranslatedText(currentText)
-                );
+                raw = await streamFunction(currentKey, model, customPrompt, sourceText, onChunk);
             }
+
+            const result = parseTranslation(raw, true);
+            setTranslatedText(result);
+            if (!result) throw new Error('The model returned an empty translation.');
 
             useStore.getState().addToHistory({
                 source: sourceText,
                 target: result,
             });
         } catch (err) {
-            if (provider === 'local') {
+            if (provider === 'local' || (err instanceof Error && err.message.startsWith('The model returned'))) {
                 setError(err instanceof Error ? err.message : 'On-device translation failed.');
             } else {
                 setError('Translation failed. Please check your API key and try again.');
@@ -71,6 +72,16 @@ export const Translator: React.FC = () => {
             setStatus(null);
         }
     };
+
+    // Pinned mid-translation: the popup (and its request) closed, so restart it here.
+    const resumed = useRef(false);
+    useEffect(() => {
+        if (!shouldResumeTranslation || resumed.current) return;
+        resumed.current = true;
+        clearResumeFlag(); // don't re-run on reload / reopen
+        handleTranslate();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const copyToClipboard = async () => {
         if (!translatedText) return;

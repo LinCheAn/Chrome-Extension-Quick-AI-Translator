@@ -1,3 +1,5 @@
+import { buildSystemPrompt, buildUserMessage } from './prompt';
+
 /**
  * Chrome built-in AI (Prompt API) — runs Gemini Nano on-device.
  * No API key and no network request; available to extensions from Chrome 138.
@@ -76,10 +78,10 @@ export const translateTextStreamLocal = async (
     onChunk: (fullText: string) => void,
     onDownloadProgress?: (fraction: number) => void
 ): Promise<string> => {
-    const session = await createSession(prompt, onDownloadProgress);
+    const session = await createSession(buildSystemPrompt(prompt), onDownloadProgress);
 
     try {
-        const reader = session.promptStreaming(text).getReader();
+        const reader = session.promptStreaming(buildUserMessage(text)).getReader();
         let fullText = '';
 
         for (;;) {
