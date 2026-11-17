@@ -2,8 +2,105 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Themes: three low-saturation palettes, each with a light and a dark variant.
+ * Values are space-separated RGB channels so Tailwind can apply alpha.
+ * The selectors also work on any element (used for the swatches in Settings).
+ */
+:root,
+[data-theme='mist'] {
+    --c-bg: 238 241 244;
+    --c-surface: 250 251 252;
+    --c-subtle: 230 234 239;
+    --c-line: 214 220 227;
+    --c-ink: 47 56 67;
+    --c-muted: 113 124 138;
+    --c-accent: 92 116 141;
+    --c-accent-hover: 78 100 124;
+    --c-accent-fg: 255 255 255;
+    --c-accent-soft: 221 229 237;
+    --c-danger: 168 92 92;
+}
+
+[data-theme='sage'] {
+    --c-bg: 239 241 236;
+    --c-surface: 250 251 248;
+    --c-subtle: 230 234 226;
+    --c-line: 214 220 208;
+    --c-ink: 52 60 51;
+    --c-muted: 116 126 112;
+    --c-accent: 98 121 95;
+    --c-accent-hover: 83 105 81;
+    --c-accent-fg: 255 255 255;
+    --c-accent-soft: 223 231 220;
+    --c-danger: 168 92 92;
+}
+
+[data-theme='rose'] {
+    --c-bg: 244 240 239;
+    --c-surface: 252 250 249;
+    --c-subtle: 238 231 230;
+    --c-line: 226 215 213;
+    --c-ink: 66 54 56;
+    --c-muted: 133 117 119;
+    --c-accent: 150 108 113;
+    --c-accent-hover: 132 93 98;
+    --c-accent-fg: 255 255 255;
+    --c-accent-soft: 238 224 224;
+    --c-danger: 168 92 92;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root,
+    [data-theme='mist'] {
+        --c-bg: 27 31 36;
+        --c-surface: 36 41 48;
+        --c-subtle: 44 50 58;
+        --c-line: 58 66 76;
+        --c-ink: 222 227 233;
+        --c-muted: 141 152 165;
+        --c-accent: 134 158 184;
+        --c-accent-hover: 153 175 199;
+        --c-accent-fg: 22 27 33;
+        --c-accent-soft: 48 58 70;
+        --c-danger: 214 142 142;
+    }
+
+    [data-theme='sage'] {
+        --c-bg: 28 32 28;
+        --c-surface: 37 42 37;
+        --c-subtle: 45 51 45;
+        --c-line: 60 68 60;
+        --c-ink: 223 229 221;
+        --c-muted: 146 157 143;
+        --c-accent: 148 171 143;
+        --c-accent-hover: 166 187 161;
+        --c-accent-fg: 24 30 24;
+        --c-accent-soft: 50 60 49;
+        --c-danger: 214 142 142;
+    }
+
+    [data-theme='rose'] {
+        --c-bg: 33 28 29;
+        --c-surface: 43 37 38;
+        --c-subtle: 52 45 46;
+        --c-line: 70 60 62;
+        --c-ink: 232 223 223;
+        --c-muted: 162 146 148;
+        --c-accent: 194 155 158;
+        --c-accent-hover: 208 173 176;
+        --c-accent-fg: 35 26 27;
+        --c-accent-soft: 66 51 53;
+        --c-danger: 214 142 142;
+    }
+}
+
+:root {
+    color-scheme: light dark;
+}
+
 body {
-    @apply bg-gray-50 dark:bg-gray-950;
+    @apply bg-bg text-ink font-sans antialiased;
     width: 600px;
     height: 600px;
     overflow: hidden;
@@ -11,4 +108,37 @@ body {
 
 #root {
     height: 100%;
+}
+
+/* Quiet scrollbars that follow the theme */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--c-line)) transparent;
+}
+
+@layer components {
+    .field {
+        @apply w-full px-3 py-2 text-sm rounded-lg border border-line bg-bg text-ink
+            placeholder:text-muted/70 transition-colors
+            focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/25;
+    }
+
+    .field-label {
+        @apply block text-xs font-medium text-muted mb-1.5;
+    }
+
+    .icon-btn {
+        @apply p-2 rounded-lg text-muted transition-colors
+            hover:bg-subtle hover:text-ink
+            focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40;
+    }
+
+    .modal-backdrop {
+        @apply fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/35 backdrop-blur-[2px];
+    }
+
+    .modal-panel {
+        @apply relative flex flex-col w-full max-w-md max-h-full
+            bg-surface border border-line rounded-2xl shadow-xl;
+    }
 }

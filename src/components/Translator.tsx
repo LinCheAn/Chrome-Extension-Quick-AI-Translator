@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { useStore } from '../lib/store';
 import { translateTextStream } from '../lib/gemini';
 import { translateTextStreamOpenAI } from '../lib/openai';
-import { ArrowRight, Loader2, Copy, Check, X } from 'lucide-react';
-
+import { translateTextStreamLocal } from '../lib/chromeAI';
+import { ArrowDown, Loader2, Copy, Check, X } from 'lucide-react';
 
 export const Translator: React.FC = () => {
     const {
@@ -12,14 +12,17 @@ export const Translator: React.FC = () => {
         setSourceText, setTranslatedText
     } = useStore();
     const [isLoading, setIsLoading] = useState(false);
+    const [status, setStatus] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
 
+    const canTranslate = !isLoading && sourceText.trim().length > 0;
+
     const handleTranslate = async () => {
-        if (!sourceText.trim()) return;
+        if (!canTranslate) return;
 
         const currentKey = provider === 'gemini' ? apiKey : openaiApiKey;
-        if (!currentKey) {
+        if (provider !== 'local' && !currentKey) {
             setError(`Please enter your ${provider === 'gemini' ? 'Gemini' : 'OpenAI'} API Key in settings first.`);
             return;
         }
@@ -29,25 +32,43 @@ export const Translator: React.FC = () => {
         setTranslatedText(''); // Clear previous translation
 
         try {
-            const streamFunction = provider === 'gemini' ? translateTextStream : translateTextStreamOpenAI;
+            let result: string;
 
-            const result = await streamFunction(
-                currentKey,
-                model,
-                customPrompt,
-                sourceText,
-                (currentText) => setTranslatedText(currentText)
-            );
+            if (provider === 'local') {
+                result = await translateTextStreamLocal(
+                    customPrompt,
+                    sourceText,
+                    (currentText) => {
+                        setStatus(null);
+                        setTranslatedText(currentText);
+                    },
+                    (fraction) => setStatus(`Downloading on-device model… ${Math.round(fraction * 100)}%`)
+                );
+            } else {
+                const streamFunction = provider === 'gemini' ? translateTextStream : translateTextStreamOpenAI;
+                result = await streamFunction(
+                    currentKey,
+                    model,
+                    customPrompt,
+                    sourceText,
+                    (currentText) => setTranslatedText(currentText)
+                );
+            }
 
             useStore.getState().addToHistory({
                 source: sourceText,
                 target: result,
             });
         } catch (err) {
-            setError('Translation failed. Please check your API key and try again.');
+            if (provider === 'local') {
+                setError(err instanceof Error ? err.message : 'On-device translation failed.');
+            } else {
+                setError('Translation failed. Please check your API key and try again.');
+            }
             console.error(err);
         } finally {
             setIsLoading(false);
+            setStatus(null);
         }
     };
 
@@ -64,76 +85,70 @@ export const Translator: React.FC = () => {
         setError(null);
     };
 
+    const panel = 'flex-1 min-h-0 flex flex-col bg-surface rounded-xl border border-line overflow-hidden';
+    const panelHeader = 'h-9 px-3 flex-shrink-0 flex justify-between items-center border-b border-line/70';
+    const panelTitle = 'text-xs font-medium uppercase tracking-wider text-muted';
+    const panelAction = 'p-1 rounded-md text-muted hover:bg-subtle hover:text-ink transition-colors';
+
     return (
-        <div className="flex flex-col h-full gap-4">
-            <div className="flex-1 flex flex-col md:flex-row gap-4 min-h-0">
-                {/* Source Input */}
-                <div className="flex-1 flex flex-col bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden relative">
-                    <div className="p-3 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 flex justify-between items-center">
-                        <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Source Text</span>
-                        {sourceText && (
-                            <button
-                                onClick={handleClear}
-                                className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors text-gray-500"
-                                title="Clear input"
-                            >
-                                <X size={16} />
-                            </button>
-                        )}
-                    </div>
-                    <textarea
-                        value={sourceText}
-                        onChange={(e) => setSourceText(e.target.value)}
-                        placeholder="Paste your text here..."
-                        className="flex-1 w-full p-4 resize-none focus:outline-none bg-transparent text-gray-900 dark:text-gray-100 placeholder-gray-400"
-                    />
+        <div className="flex flex-col h-full gap-2.5">
+            {/* Source Input */}
+            <div className={`${panel} focus-within:border-accent/60 transition-colors`}>
+                <div className={panelHeader}>
+                    <span className={panelTitle}>Source</span>
+                    {sourceText && (
+                        <button onClick={handleClear} className={panelAction} title="Clear input">
+                            <X size={15} />
+                        </button>
+                    )}
                 </div>
+                <textarea
+                    value={sourceText}
+                    onChange={(e) => setSourceText(e.target.value)}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handleTranslate();
+                    }}
+                    placeholder="Paste your text here..."
+                    className="flex-1 w-full px-3.5 py-3 text-sm leading-relaxed resize-none focus:outline-none bg-transparent text-ink placeholder:text-muted/60"
+                />
+            </div>
 
-                {/* Action Button (Mobile: Vertical, Desktop: Horizontal) */}
-                <div className="flex items-center justify-center">
-                    <button
-                        onClick={handleTranslate}
-                        disabled={isLoading || !sourceText.trim()}
-                        className="group p-4 rounded-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white shadow-lg transition-all hover:scale-105 active:scale-95 disabled:hover:scale-100"
-                    >
-                        {isLoading ? (
-                            <Loader2 className="w-6 h-6 animate-spin" />
-                        ) : (
-                            <ArrowRight className="w-6 h-6 md:rotate-0 rotate-90 transition-transform group-hover:translate-x-1 md:group-hover:translate-x-1 group-hover:translate-y-0 md:group-hover:translate-y-0 translate-y-0" />
-                        )}
-                    </button>
+            {/* Action */}
+            <div className="flex items-center justify-center gap-3">
+                <button
+                    onClick={handleTranslate}
+                    disabled={!canTranslate}
+                    title="Translate (Ctrl/⌘ + Enter)"
+                    className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-sm font-medium bg-accent text-accent-fg hover:bg-accent-hover disabled:bg-subtle disabled:text-muted transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+                >
+                    {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowDown className="w-4 h-4" />}
+                    {isLoading ? 'Translating' : 'Translate'}
+                </button>
+            </div>
+
+            {/* Translated Output */}
+            <div className={panel}>
+                <div className={panelHeader}>
+                    <span className={panelTitle}>Translation</span>
+                    {translatedText && (
+                        <button onClick={copyToClipboard} className={panelAction} title="Copy to clipboard">
+                            {copied ? <Check size={15} className="text-accent" /> : <Copy size={15} />}
+                        </button>
+                    )}
                 </div>
-
-                {/* Translated Output */}
-                <div className="flex-1 flex flex-col bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden relative">
-                    <div className="p-3 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 flex justify-between items-center">
-                        <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Translation</span>
-                        {translatedText && (
-                            <button
-                                onClick={copyToClipboard}
-                                className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors text-gray-500"
-                                title="Copy to clipboard"
-                            >
-                                {copied ? <Check size={16} className="text-green-500" /> : <Copy size={16} />}
-                            </button>
-                        )}
-                    </div>
-                    <div className="flex-1 p-4 overflow-auto">
-                        {translatedText ? (
-                            <div className="prose dark:prose-invert max-w-none whitespace-pre-wrap">
-                                {translatedText}
-                            </div>
-                        ) : (
-                            <div className="h-full flex items-center justify-center text-gray-400 dark:text-gray-600 italic">
-                                Translation will appear here...
-                            </div>
-                        )}
-                    </div>
+                <div className="flex-1 px-3.5 py-3 overflow-auto text-sm leading-relaxed">
+                    {translatedText ? (
+                        <div className="whitespace-pre-wrap">{translatedText}</div>
+                    ) : (
+                        <div className="h-full flex items-center justify-center text-muted/70">
+                            {status ?? (isLoading ? 'Working…' : 'Translation will appear here')}
+                        </div>
+                    )}
                 </div>
             </div>
 
             {error && (
-                <div className="p-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl text-sm text-center animate-in fade-in slide-in-from-bottom-2">
+                <div className="px-3 py-2 rounded-lg text-xs text-center text-danger bg-danger/10 border border-danger/20">
                     {error}
                 </div>
             )}

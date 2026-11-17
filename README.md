@@ -5,12 +5,13 @@
 
 ## ✨ Features
 
--   **Multi-Provider Support**: Use **Google Gemini** (Free tier available) or **OpenAI** (GPT-4o, etc.).
+-   **On-Device Translation**: Use Chrome's built-in **Gemini Nano** (Prompt API) — no API key, nothing leaves your browser. Requires desktop Chrome 138+ and a [supported device](https://developer.chrome.com/docs/ai/prompt-api).
+-   **Multi-Provider Support**: Or use the **Google Gemini** API (Free tier available) or **OpenAI** (GPT-4o, etc.).
 -   **Streaming Translation**: See results instantly word-by-word as they are generated.
 -   **Custom Models**: Select from presets or type **ANY** model name (e.g., `gemini-2.5-flash`, `gpt-4.1-mini`).
 -   **Smart History**: Automatically saves your last 10 translations. Click any history item to restore it.
 -   **Privacy First**: Your API keys and history are stored **locally** in your browser. No external servers involved.
--   **Clean UI**: Dark mode support, clear button, and one-click copy.
+-   **Clean UI**: Three low-saturation color themes (Mist Blue, Sage Green, Dusty Rose) with automatic dark mode, clear button, and one-click copy.
 
 ## 🚀 Quick Start (Installation)
 
@@ -45,8 +46,8 @@ If you want to modify the code or build it yourself:
 
 1.  **Set API Key**:
     -   Click the **Settings** (gear icon) in the top right.
-    -   Choose your provider (**Gemini** or **OpenAI**).
-    -   Paste your API Key.
+    -   Choose your translation engine: **Chrome built-in** (Gemini Nano, no key needed — the model is downloaded once on first use), **Gemini** or **OpenAI**.
+    -   For Gemini / OpenAI, paste your API Key.
     -   (Optional) Change the model or customize the system prompt.
 2.  **Translate**:
     -   Paste text into the source box.

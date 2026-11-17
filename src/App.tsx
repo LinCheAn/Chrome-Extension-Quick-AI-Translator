@@ -1,55 +1,47 @@
 import { useState } from 'react';
-import { Settings as SettingsIcon, Sparkles, History as HistoryIcon } from 'lucide-react';
+import { Settings as SettingsIcon, Languages, History as HistoryIcon } from 'lucide-react';
 import { Settings } from './components/Settings';
 import { Translator } from './components/Translator';
 import { History } from './components/History';
+import { useStore } from './lib/store';
+
+const PROVIDER_LABEL = {
+  local: 'Gemini Nano · on-device',
+  gemini: 'Gemini API',
+  openai: 'OpenAI API',
+} as const;
 
 function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const provider = useStore((s) => s.provider);
 
   return (
-    <div className="bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 transition-colors h-full">
-      <div className="p-4 h-full flex flex-col">
-        {/* Header */}
-        <header className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-indigo-600 rounded-xl shadow-lg shadow-indigo-600/20">
-              <Sparkles className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-400 dark:to-violet-400">
-                AI Translator
-              </h1>
-              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-                Powered by Gemini
-              </p>
-            </div>
+    <div className="h-full flex flex-col p-4 gap-3">
+      <header className="flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <div className="p-2 rounded-xl bg-accent-soft text-accent">
+            <Languages className="w-5 h-5" />
           </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setIsHistoryOpen(true)}
-              className="p-2 hover:bg-white dark:hover:bg-gray-800 rounded-xl transition-all hover:shadow-md text-gray-600 dark:text-gray-400"
-              title="History"
-            >
-              <HistoryIcon className="w-6 h-6" />
-            </button>
-            <button
-              onClick={() => setIsSettingsOpen(true)}
-              className="p-2 hover:bg-white dark:hover:bg-gray-800 rounded-xl transition-all hover:shadow-md text-gray-600 dark:text-gray-400"
-              title="Settings"
-            >
-              <SettingsIcon className="w-6 h-6" />
-            </button>
+          <div>
+            <h1 className="text-base font-semibold leading-tight tracking-tight">AI Translator</h1>
+            <p className="text-xs text-muted">{PROVIDER_LABEL[provider]}</p>
           </div>
-        </header>
+        </div>
 
-        {/* Main Content */}
-        <main className="flex-1 min-h-0">
-          <Translator />
-        </main>
-      </div>
+        <div className="flex items-center gap-1">
+          <button onClick={() => setIsHistoryOpen(true)} className="icon-btn" title="History">
+            <HistoryIcon className="w-5 h-5" />
+          </button>
+          <button onClick={() => setIsSettingsOpen(true)} className="icon-btn" title="Settings">
+            <SettingsIcon className="w-5 h-5" />
+          </button>
+        </div>
+      </header>
+
+      <main className="flex-1 min-h-0">
+        <Translator />
+      </main>
 
       <Settings isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
       <History isOpen={isHistoryOpen} onClose={() => setIsHistoryOpen(false)} />

@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { useStore } from '../lib/store';
-import { History as HistoryIcon, X, Trash2, Clock } from 'lucide-react';
+import { X, Trash2, Clock } from 'lucide-react';
 
 interface HistoryProps {
     isOpen: boolean;
@@ -14,67 +13,54 @@ export const History: React.FC<HistoryProps> = ({ isOpen, onClose }) => {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-md p-6 relative border border-gray-200 dark:border-gray-800 max-h-[80vh] flex flex-col">
-                <button
-                    onClick={onClose}
-                    className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
-                >
-                    <X size={20} />
-                </button>
-
-                <div className="flex items-center gap-2 mb-6 flex-shrink-0">
-                    <HistoryIcon className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white">History</h2>
+        <div className="modal-backdrop" onClick={onClose}>
+            <div className="modal-panel" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center justify-between px-5 pt-4 pb-3 flex-shrink-0">
+                    <h2 className="text-base font-semibold">History</h2>
+                    <button onClick={onClose} className="icon-btn -mr-2" title="Close">
+                        <X size={18} />
+                    </button>
                 </div>
 
-                <div className="flex-1 overflow-y-auto space-y-4 pr-2">
+                <div className="flex-1 min-h-0 overflow-y-auto px-5 pb-4 space-y-2">
                     {history.length === 0 ? (
-                        <div className="text-center text-gray-500 dark:text-gray-400 py-8">
+                        <div className="text-center text-sm text-muted py-10">
                             No history yet.
                         </div>
                     ) : (
                         history.map((item) => (
-                            <div
+                            <button
                                 key={item.id}
                                 onClick={() => {
                                     setSourceText(item.source);
                                     setTranslatedText(item.target);
                                     onClose();
                                 }}
-                                className="p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors group"
+                                className="block w-full text-left p-3 rounded-lg border border-line bg-bg/50 hover:border-accent/50 hover:bg-accent-soft/40 transition-colors"
                             >
-                                <div className="flex justify-between items-start mb-2">
-                                    <div className="flex items-center gap-1 text-xs text-gray-400">
-                                        <Clock size={12} />
-                                        <span>{new Date(item.timestamp).toLocaleString()}</span>
-                                    </div>
+                                <div className="flex items-center gap-1 text-[11px] text-muted mb-1.5">
+                                    <Clock size={11} />
+                                    <span>{new Date(item.timestamp).toLocaleString()}</span>
                                 </div>
-                                <div className="space-y-2">
-                                    <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2 font-medium">
-                                        {item.source}
-                                    </p>
-                                    <p className="text-sm text-gray-900 dark:text-gray-100 line-clamp-2">
-                                        {item.target}
-                                    </p>
-                                </div>
-                            </div>
+                                <p className="text-sm text-muted line-clamp-2">{item.source}</p>
+                                <p className="text-sm text-ink line-clamp-2 mt-1">{item.target}</p>
+                            </button>
                         ))
                     )}
                 </div>
 
                 {history.length > 0 && (
-                    <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-800 flex justify-between items-center flex-shrink-0">
+                    <div className="px-5 py-3 border-t border-line flex justify-between items-center flex-shrink-0">
                         <button
                             onClick={clearHistory}
-                            className="flex items-center gap-2 text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 transition-colors"
+                            className="flex items-center gap-1.5 text-sm text-danger hover:opacity-80 transition-opacity"
                         >
-                            <Trash2 size={16} />
+                            <Trash2 size={15} />
                             Clear History
                         </button>
                         <button
                             onClick={onClose}
-                            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-900 dark:text-white rounded-lg font-medium transition-colors"
+                            className="px-4 py-1.5 text-sm font-medium rounded-lg bg-subtle text-ink hover:bg-line transition-colors"
                         >
                             Close
                         </button>
