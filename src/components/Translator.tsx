@@ -34,7 +34,12 @@ export const Translator: React.FC = () => {
 
         try {
             // Providers stream the raw response; only the <translation> block is shown.
-            const onChunk = (raw: string) => setTranslatedText(parseTranslation(raw));
+            const startedAt = performance.now();
+            let firstChunkAt: number | null = null;
+            const onChunk = (raw: string) => {
+                firstChunkAt ??= performance.now();
+                setTranslatedText(parseTranslation(raw));
+            };
             let raw: string;
 
             if (provider === 'local') {
@@ -53,6 +58,8 @@ export const Translator: React.FC = () => {
             }
 
             const result = parseTranslation(raw, true);
+            const elapsed = (t: number | null) => (t === null ? '-' : `${Math.round(t - startedAt)} ms`);
+            console.info(`[translate] ${provider}/${model}: first token ${elapsed(firstChunkAt)}, done ${elapsed(performance.now())}`);
             setTranslatedText(result);
             if (!result) throw new Error('The model returned an empty translation.');
 

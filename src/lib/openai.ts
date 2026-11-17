@@ -1,5 +1,22 @@
 import OpenAI from 'openai';
+import type { ReasoningEffort } from 'openai/resources/shared';
 import { buildSystemPrompt, buildUserMessage } from './prompt';
+
+/**
+ * Reasoning models (o-series, GPT-5) think before the first token; translation doesn't
+ * need it, so use the lowest effort each family accepts. Other models get no parameter.
+ */
+const reasoningEffortFor = (modelName: string): ReasoningEffort | undefined => {
+    const m = modelName.toLowerCase();
+    if (m.includes('chat')) return undefined; // gpt-5-chat-latest etc. aren't reasoning models
+    if (/^gpt-5\.\d/.test(m)) return 'none'; // GPT-5.1+
+    if (/^gpt-5/.test(m)) return 'minimal';
+    if (/^o\d/.test(m)) return 'low';
+    return undefined;
+};
+
+const isReasoningParamError = (error: unknown) =>
+    error instanceof OpenAI.APIError && error.status === 400 && /reasoning/i.test(error.message);
 
 export const translateTextStreamOpenAI = async (
     apiKey: string,
@@ -17,7 +34,7 @@ export const translateTextStreamOpenAI = async (
         dangerouslyAllowBrowser: true, // Required for client-side usage
     });
 
-    try {
+    const run = async (reasoningEffort?: ReasoningEffort) => {
         const stream = await openai.chat.completions.create({
             model: modelName,
             messages: [
@@ -25,6 +42,7 @@ export const translateTextStreamOpenAI = async (
                 { role: 'user', content: buildUserMessage(text) },
             ],
             stream: true,
+            ...(reasoningEffort ? { reasoning_effort: reasoningEffort } : {}),
         });
 
         let fullText = '';
@@ -38,6 +56,17 @@ export const translateTextStreamOpenAI = async (
         }
 
         return fullText;
+    };
+
+    try {
+        const effort = reasoningEffortFor(modelName);
+        try {
+            return await run(effort);
+        } catch (error) {
+            // Model rejects this effort level: retry with its default.
+            if (effort && isReasoningParamError(error)) return await run();
+            throw error;
+        }
     } catch (error) {
         console.error('OpenAI Translation error:', error);
         throw error;
